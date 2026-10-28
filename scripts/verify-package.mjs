@@ -1,0 +1,30 @@
+import {execFileSync,spawn} from 'node:child_process';
+import {mkdtemp,readFile,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import path from 'node:path';
+import readline from 'node:readline';
+const npm=process.env.npm_execpath;
+if(!npm)throw Error('Run with npm run verify:package');
+const root=process.cwd(),temp=await mkdtemp(path.join(tmpdir(),'branchcraft-package-'));
+let child;
+try {
+ const packed=JSON.parse(execFileSync(process.execPath,[npm,'pack','--json','--pack-destination',temp],{encoding:'utf8'}))[0];
+ if(packed.files.some(f=>/WORK_CHECKPOINT|\.env|local-server|node_modules/.test(f.path)))throw Error('Private or unnecessary files in archive');
+ const prefix=path.join(temp,'installed');
+ execFileSync(process.execPath,[npm,'install','--prefix',prefix,'--ignore-scripts','--omit=dev','--no-audit','--no-fund',path.join(temp,packed.filename)],{stdio:'pipe'});
+ const pkg=path.join(prefix,'node_modules','branchcraft');
+ const metadata=JSON.parse(await readFile(path.join(pkg,'package.json'),'utf8'));if(Object.keys(metadata.dependencies||{}).length)throw Error('Unexpected runtime dependencies');
+ const cli=path.join(pkg,'bin','branchcraft.mjs');
+ const config=JSON.parse(execFileSync(process.execPath,[cli,'--connect','generic',root],{encoding:'utf8'}));
+ if(config.mcpServers.branchcraft.args[0]!==cli)throw Error('Installed launcher path incorrect');
+ await readFile(path.join(pkg,'dist','index.html'));await readFile(path.join(pkg,'skills','branchcraft','SKILL.md'));
+ child=spawn(process.execPath,[cli,root,'--mcp'],{stdio:['pipe','pipe','pipe']});
+ const responses=[];let stderr='';child.stderr.on('data',b=>stderr+=b);
+ const lines=readline.createInterface({input:child.stdout});
+ const done=new Promise((resolve,reject)=>{const timeout=setTimeout(()=>{child.kill();reject(Error('Installed MCP timed out'));},20000);child.on('error',e=>{clearTimeout(timeout);reject(e);});lines.on('line',line=>{try{const r=JSON.parse(line);responses.push(r);if(responses.length===3){clearTimeout(timeout);resolve();}}catch(e){clearTimeout(timeout);reject(e);}});});
+ for(const [id,method,params] of [[1,'initialize',{protocolVersion:'2025-11-25'}],[2,'tools/list',{}],[3,'tools/call',{name:'git_status',arguments:{}}]])child.stdin.write(JSON.stringify({jsonrpc:'2.0',id,method,params})+'\n');
+ await done;
+ if(stderr||responses.some(r=>r.error||r.result?.isError)||responses[1].result.tools.length!==4||!JSON.parse(responses[2].result.content[0].text).path)throw Error('Installed MCP validation failed');
+ child.stdin.end();lines.close();await new Promise(resolve=>{child.once('exit',resolve);child.kill();});child=undefined;
+ console.log(`Package verified: ${packed.filename}, ${packed.size} bytes, no runtime dependencies; installed MCP and config generator passed.`);
+} finally {if(child)child.kill();await rm(temp,{recursive:true,force:true,maxRetries:5,retryDelay:200});}

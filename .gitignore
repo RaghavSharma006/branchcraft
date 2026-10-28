@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.vercel/
+*.log
+.DS_Store
+
+.vercel
+*.tgz
+
+WORK_CHECKPOINT.md
+.env
+.env.*

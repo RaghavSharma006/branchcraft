@@ -1,0 +1,38 @@
+{
+  "name": "branchcraft",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "description": "A visual workspace for real Git repositories.",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc --noEmit && vite build",
+    "start": "node server/index.mjs",
+    "test": "node --test test/*.test.mjs",
+    "verify:package": "node scripts/verify-package.mjs"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "typescript": "^5.9.3",
+    "vite": "^7.1.12",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "lucide-react": "^0.468.0"
+  },
+  "bin": {
+    "branchcraft": "bin/branchcraft.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "files": [
+    "bin/",
+    "server/",
+    "dist/",
+    "src/online-core.mjs",
+    "skills/",
+    "integrations/",
+    "README.md"
+  ]
+}
