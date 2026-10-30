@@ -62,4 +62,8 @@ const server = http.createServer(async (req, res) => {
     res.end(content);
   } catch { res.writeHead(404).end('Build the interface first: npm run build'); }
 });
-server.listen(port, '127.0.0.1', () => console.log(`Branchcraft is ready. Open this private local link:\n${origin}/?session=${token}`));
+server.listen(port, '127.0.0.1', async () => {
+  const url=`${origin}/?session=${token}`;
+  console.log(`Branchcraft is ready. Open this private local link:\n${url}`);
+  if(process.env.BRANCHCRAFT_OPEN==='1') (await import('./browser.mjs')).openBrowser(url);
+});

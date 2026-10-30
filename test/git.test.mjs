@@ -26,4 +26,4 @@ test('real Git workflow: selected commit, branching, merge conflict, abort, shel
   await assert.rejects(runAction(repo,{action:'branch',name:'stale',expectedHead:'bad'}),/changed/);
  } finally { await rm(repo,{recursive:true,force:true}); }
 });
-test('reject unsafe path operands',()=>{for(const value of ['../secret','.git/config','C:/secret','x/../../y']) assert.throws(()=>validPath(value));});
+test('reject unsafe path operands',()=>{for(const value of ['../secret','.git/config','C:/secret','C:secret','/secret','\\\\server\\share','x/../../y']) assert.throws(()=>validPath(value));});

@@ -56,7 +56,7 @@ export async function state(repo) {
   };
 }
 export function validPath(file) {
-  if (typeof file !== 'string' || !file || path.isAbsolute(file) || file.includes('\0') || file.split(/[\\/]/).some(p => p === '..' || p.toLowerCase() === '.git')) throw new Error('Invalid repository file path.');
+  if (typeof file !== 'string' || !file || path.posix.isAbsolute(file) || path.win32.isAbsolute(file) || /^[A-Za-z]:/.test(file) || file.includes('\0') || file.split(/[\\/]/).some(p => p === '..' || p.toLowerCase() === '.git')) throw new Error('Invalid repository file path.');
   return file;
 }
 async function revision(repo, value) {

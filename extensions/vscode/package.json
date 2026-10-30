@@ -1,0 +1,88 @@
+{
+  "name": "branchcraft",
+  "displayName": "Branchcraft",
+  "description": "Visual Git in your sidebar, powered by your local repository.",
+  "version": "0.3.0",
+  "publisher": "RaghavSharma006",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "main": "./extension.cjs",
+  "extensionKind": [
+    "ui"
+  ],
+  "categories": [
+    "SCM Providers"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RaghavSharma006/branchcraft"
+  },
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": false
+    },
+    "virtualWorkspaces": false
+  },
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "branchcraft",
+          "title": "Branchcraft",
+          "icon": "branch.svg"
+        }
+      ]
+    },
+    "views": {
+      "branchcraft": [
+        {
+          "id": "branchcraft.graph",
+          "name": "Repository",
+          "type": "webview"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "branchcraft.open",
+        "title": "Branchcraft: Open Local Repository",
+        "icon": "$(folder-opened)"
+      },
+      {
+        "command": "branchcraft.editor",
+        "title": "Branchcraft: Open Graph in Editor",
+        "icon": "$(open-preview)"
+      },
+      {
+        "command": "branchcraft.online",
+        "title": "Branchcraft: Browse GitHub"
+      }
+    ],
+    "configuration": {
+      "title": "Branchcraft",
+      "properties": {
+        "branchcraft.nodePath": {
+          "type": "string",
+          "default": "node",
+          "scope": "machine",
+          "description": "Path to an installed Node.js 20+ executable."
+        }
+      }
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "branchcraft.open",
+          "when": "view == branchcraft.graph",
+          "group": "navigation@0"
+        },
+        {
+          "command": "branchcraft.editor",
+          "when": "view == branchcraft.graph",
+          "group": "navigation@1"
+        }
+      ]
+    }
+  }
+}

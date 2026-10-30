@@ -1,6 +1,6 @@
 {
   "name": "branchcraft",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "description": "A visual workspace for real Git repositories.",
@@ -9,7 +9,8 @@
     "build": "tsc --noEmit && vite build",
     "start": "node server/index.mjs",
     "test": "node --test test/*.test.mjs",
-    "verify:package": "node scripts/verify-package.mjs"
+    "verify:package": "node scripts/verify-package.mjs",
+    "prepare:editor": "node scripts/prepare-editor.mjs"
   },
   "devDependencies": {
     "@types/react": "^19.2.0",
@@ -33,6 +34,7 @@
     "src/online-core.mjs",
     "skills/",
     "integrations/",
-    "README.md"
+    "README.md",
+    "Start Branchcraft.cmd"
   ]
 }

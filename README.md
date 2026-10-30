@@ -4,7 +4,7 @@
 
 Branchcraft turns branches, commits and Git operations into a small local web app. Explore a repository as connected nodes, inspect changes, and choose your next move without memorizing commands. Use the same Git engine from an AI client through MCP.
 
-[Try the online explorer](https://branchcraft-rho.vercel.app/) · [Download v0.2.0](https://github.com/RaghavSharma006/branchcraft/releases/tag/v0.2.0) · [AI client setup](integrations/README.md)
+[Try the online explorer](https://branchcraft-rho.vercel.app/) · [Download v0.3.0](https://github.com/RaghavSharma006/branchcraft/releases/tag/v0.3.0) · [AI client setup](integrations/README.md)
 
 > **Alpha:** core workflows are tested, but this is not a replacement for backups. No Electron, database, account requirement for local work, or npm runtime dependencies.
 
@@ -31,13 +31,19 @@ The hosted website cannot access your local files. For local work, keep the Bran
 
 ## Quick start
 
+### Use an editor sidebar
+
+Download `branchcraft-0.3.0.vsix` from [Releases](https://github.com/RaghavSharma006/branchcraft/releases/tag/v0.3.0). In VS Code or Cursor, choose **Extensions → Install from VSIX**. Open your local project, click the Branchcraft branch icon, then the folder button. The adjacent preview button opens the graph in a full editor tab.
+
+The extension includes the built GUI and server. Install Node.js 20+ and Git once; no source build is needed. This initial adapter supports trusted local folders. See [editor setup](extensions/vscode/README.md).
+
 ### Download the built tool
 
-Install Node.js 20+ and Git, then download `branchcraft-0.2.0.tgz` from [Releases](https://github.com/RaghavSharma006/branchcraft/releases).
+Install Node.js 20+ and Git, then download `branchcraft-0.3.0.tgz` from [Releases](https://github.com/RaghavSharma006/branchcraft/releases).
 
 ```sh
-npm install -g ./branchcraft-0.2.0.tgz
-branchcraft /absolute/path/to/your/repository
+npm install -g ./branchcraft-0.3.0.tgz
+branchcraft /absolute/path/to/your/repository --open
 ```
 
 On Windows, quote paths containing spaces:
@@ -46,7 +52,7 @@ On Windows, quote paths containing spaces:
 branchcraft "C:\Projects\My App"
 ```
 
-Open the localhost link printed by the launcher. Use **Change project** to open a different repository. The local link may contain a session credential; do not share it.
+`--open` launches your browser. Use `branchcraft --welcome --open` to choose a project in the GUI. Use **Change project** to open a different repository. The local link may contain a session credential; do not share it. On Windows, an extracted built archive also includes **Start Branchcraft.cmd** for double-click launching.
 
 ```sh
 branchcraft /path/to/repo --port 4318
@@ -91,6 +97,8 @@ These commands print settings without editing existing configuration. Merge the 
 
 MCP runs over local stdio and is fixed to its launch repository. Changing projects in the GUI does not retarget it. The AI client's permission settings govern tool calls; the skill does not grant blanket mutation or publishing permission.
 
+The supplied skill tells agents to apply requested local changes and obtain explicit confirmation before pushing or rewriting history. This is agent guidance, not a server-enforced approval dialog. MCP provides tools in Codex and Claude Code; the graphical sidebar is supplied by the VS Code/Cursor extension.
+
 ## GitHub access
 
 Public online browsing requires no login and is subject to GitHub API rate limits. Branches, commits and changed files load in pages. GitHub may omit large or binary patches and limits a commit file listing to 3,000 files.
@@ -118,7 +126,7 @@ The React interface is bundled with Vite. The backend uses Node's standard libra
 - Operation animations show intent, not a computed prediction of conflicts.
 - Rebase and squash rewrite history. Squash supports recent linear unpublished commits and creates a backup branch.
 - Individual processes serialize actions, but there is no cross-process lock against another editor or Git client.
-- No arbitrary shell-command tool, force-push UI, packaged IDE extension or marketplace plugin is included.
+- No arbitrary shell-command tool, force-push UI, marketplace plugin is included.
 - Tested locally on Windows; the CI matrix checks the supported Node versions on Windows and Linux. macOS has not been verified.
 
 Bug reports should include the operation, Git/Node versions and a reproducible example. Remove tokens, private URLs and file contents before sharing logs.

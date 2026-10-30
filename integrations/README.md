@@ -1,6 +1,6 @@
 # Connect Branchcraft to an AI client
 
-Requires local Node.js20+ and Git. Install the supplied archive with `npm install -g /path/to/branchcraft-0.2.0.tgz`, or use `node /path/to/branchcraft/bin/branchcraft.mjs` from source. The archive includes the built GUI and has zero npm runtime dependencies. It is not published to npm or any marketplace.
+Requires local Node.js20+ and Git. Install the supplied archive with `npm install -g /path/to/branchcraft-0.3.0.tgz`, or use `node /path/to/branchcraft/bin/branchcraft.mjs` from source. The archive includes the built GUI and has zero npm runtime dependencies. It is not published to npm or any marketplace.
 
 Generate settings for the repository you want the agent to control:
 

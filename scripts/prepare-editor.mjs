@@ -1,0 +1,11 @@
+import {cp,mkdir,rm} from 'node:fs/promises';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
+const dest=path.resolve(root,'extensions','vscode','runtime');
+if(path.relative(root,dest)!==path.join('extensions','vscode','runtime'))throw Error('Invalid generated runtime directory');
+await rm(dest,{recursive:true,force:true});await mkdir(dest,{recursive:true});
+for(const folder of ['bin','server','dist'])await cp(path.join(root,folder),path.join(dest,folder),{recursive:true});
+await mkdir(path.join(dest,'src'),{recursive:true});await cp(path.join(root,'src','online-core.mjs'),path.join(dest,'src','online-core.mjs'));
+await cp(path.join(root,'package.json'),path.join(dest,'package.json'));
+console.log('Editor runtime prepared. Package with vsce from extensions/vscode.');

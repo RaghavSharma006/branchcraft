@@ -1,0 +1,3 @@
+*.vsix
+runtime/node_modules/**
+runtime/WORK_CHECKPOINT.md
