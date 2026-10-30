@@ -59,11 +59,20 @@ export function layout(repo) {
 
   const groupOrder = [...new Set([...lanes.keys()].map(group))];
   const groupIds = new Map(groupOrder.map((hash, index) => [hash, index]));
+  // Keep every connected history in one contiguous band. Otherwise an edge
+  // between related branches can visually cut through an unrelated root.
+  const laneGroups=new Map([...lanes].map(([hash,lane])=>[lane,groupIds.get(group(hash))]));
+  const laneOrder=[...laneGroups.keys()].sort((a,b)=>laneGroups.get(a)-laneGroups.get(b)||a-b);
+  const remap=new Map(laneOrder.map((old,index)=>[old,index]));
+  const oldColors=laneColors.slice();
+  for(const [hash,lane] of lanes)lanes.set(hash,remap.get(lane));
+  laneOrder.forEach((old,index)=>{laneColors[index]=oldColors[old];});
   const laneLabels = Array.from({length:laneCount}, (_, lane) =>
     branches.filter(b => lanes.get(b.hash) === lane).map(b => b.name));
   const rowY = [];
   let nextY = 90;
   for (let lane = 0; lane < laneCount; lane++) {
+    if(lane>0&&laneGroups.get(laneOrder[lane])!==laneGroups.get(laneOrder[lane-1]))nextY+=60;
     rowY.push(nextY);
     const maxRefs = Math.max(0, ...ordered.filter(c => lanes.get(c.hash) === lane)
       .map(c => branches.filter(b => b.hash === c.hash).length));
@@ -81,3 +90,4 @@ export function layout(repo) {
     height:Math.max(240, nextY + 12),
   };
 }
+

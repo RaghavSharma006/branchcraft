@@ -48,3 +48,10 @@ test('switching branches preserves every node color and position, including shar
  for(const current of input.branches)assert.deepEqual(layout({...input,head:current.hash,current:current.name}),before);
  assert.deepEqual(layout({...input,head:'a',current:'Detached HEAD'}),before);
 });
+test('related branches stay adjacent instead of crossing a disconnected history',()=>{
+ const input=repo([commit('r'),commit('m',['r']),commit('h',['m']),commit('x'),commit('y',['x'])],'h',[branch('main','m'),branch('master','y'),branch('hello','h')]);
+ const graph=layout(input),byHash=new Map(graph.nodes.map(n=>[n.hash,n]));
+ assert.ok(byHash.get('h').y<byHash.get('x').y);
+ for(const n of graph.nodes)for(const parent of n.parents){const p=byHash.get(parent);if(!p)continue;for(const unrelated of graph.nodes.filter(other=>other.component!==n.component))assert.ok(unrelated.y<Math.min(n.y,p.y)||unrelated.y>Math.max(n.y,p.y));}
+ assert.deepEqual(graph,layout({...input,head:'y',current:'master'}));assertTopology(graph);
+});
