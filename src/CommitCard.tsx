@@ -2,6 +2,16 @@ import { GitBranch, FileCode2, ArrowUpRight } from 'lucide-react';
 import type { Commit, Repo } from './model';
 export type Details = { hash: string; author: string; email: string; date: string; committer: string; committedDate: string; parents: string[]; message: string; refs: string[]; files: { path: string; added: number | null; removed: number | null }[]; additions: number; deletions: number };
 export function CommitCard({ commit, repo, details, error, onDiff }: { commit: Commit; repo: Repo; details?: Details; error?: string; onDiff: () => void }) {
- const refs = details?.refs || repo.branches.filter(b => b.hash === commit.hash).map(b => `${b.remote ? 'remote' : 'branch'}: ${b.name}`);
- return <><div className="hover-heading"><span className="eyebrow">{commit.hash === repo.head ? 'CURRENT CHECKPOINT · HEAD' : 'CHECKPOINT'}</span><code>{commit.hash.slice(0, 10)}</code></div><h3>{commit.subject}</h3><dl><dt>Author</dt><dd>{details?.author || commit.author}{details?.email && <small>{details.email}</small>}</dd><dt>Created</dt><dd>{new Date(details?.date || commit.date).toLocaleString()}</dd>{details && <><dt>Committer</dt><dd>{details.committer} · {new Date(details.committedDate).toLocaleString()}</dd></>}<dt>Parents</dt><dd>{commit.parents.length ? commit.parents.map(p => p.slice(0, 10)).join(', ') : 'Root commit'}</dd><dt>Commit ID</dt><dd className="full-hash">{commit.hash}</dd></dl><div className="hover-refs">{refs.length ? refs.map(ref => <span key={ref}><GitBranch size={11}/>{ref.replace(/^refs\//, '')}</span>) : <small>No branch or tag points directly here.</small>}</div>{details?.message && <pre className="commit-message">{details.message}</pre>}{details ? <><div className="hover-stats"><FileCode2 size={13}/>{details.files.length} changed files <span>+{details.additions}</span><span>−{details.deletions}</span></div><ul className="hover-files">{details.files.map(f => <li key={f.path}><code>{f.path}</code><span>{f.added === null ? 'binary' : `+${f.added} −${f.removed}`}</span></li>)}</ul></> : <p className="muted">{error || 'Loading full commit details…'}</p>}<button className="outline full" onClick={onDiff}>Explore complete diff<ArrowUpRight size={14}/></button></>;
+ const refs = details?.refs || repo.branches.filter(b => b.hash === commit.hash).map(b => b.name);
+ const date = new Date(details?.date || commit.date);
+ return <>
+  <div className="hover-heading"><code>{commit.hash.slice(0, 7)}</code>{commit.hash === repo.head && <span className="hover-current">HEAD</span>}</div>
+  <h3>{commit.subject}</h3>
+  <div className="hover-meta"><span>{details?.author || commit.author}</span><time dateTime={date.toISOString()}>{date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</time></div>
+  {refs.length > 0 && <div className="hover-refs">{refs.slice(0, 2).map(ref => <span key={ref} title={ref}><GitBranch size={11}/><span>{ref.replace(/^refs\/(heads|remotes|tags)\//, '')}</span></span>)}{refs.length > 2 && <small>+{refs.length - 2}</small>}</div>}
+  <div className="hover-footer">
+   {details ? <div className="hover-stats"><FileCode2 size={12}/><span>{details.files.length}</span><span className="added">+{details.additions}</span><span className="removed">−{details.deletions}</span></div> : <span className="hover-status">{error ? 'Preview unavailable' : 'Loading…'}</span>}
+   <button className="outline" onClick={onDiff}>View diff<ArrowUpRight size={13}/></button>
+  </div>
+ </>;
 }

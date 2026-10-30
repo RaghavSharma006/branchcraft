@@ -1,0 +1,59 @@
+/* Compact local workspace; the online explorer keeps its separate layout. */
+.app:not(.unified-mode)>main{padding:0 24px;max-width:1800px}
+.app:not(.unified-mode) .topbar{height:54px}
+.app:not(.unified-mode) .topbar .avatar,.app:not(.unified-mode) .learn-card{display:none}
+.workspace-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:22px 0 18px}
+.workspace-heading>div:first-child{min-width:0}
+.workspace-heading h1{font-size:22px;letter-spacing:-.5px;margin:0 0 5px}
+.workspace-heading>div>span{display:block;font:11px monospace;color:#898699;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:45vw}
+.workspace-heading>div:last-child{display:flex;gap:8px;flex-shrink:0}
+.workspace-heading .outline{font-size:12px;padding:9px 11px}
+.current-branch{display:flex;align-items:center;gap:10px;background:none;border:0;color:#ded7f6;font-size:13px;font-weight:600;padding:4px 0;max-width:45vw;overflow:hidden;text-overflow:ellipsis}
+.app:not(.unified-mode) .workspace-bar{margin:0 0 14px}
+.git-controls{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:0 0 14px}
+.git-controls>button{padding:9px 13px;font-size:12px;gap:7px;min-height:36px}
+.git-controls .history-controls{display:flex;gap:6px;margin-left:auto}
+.history-controls button{display:flex;align-items:center;gap:6px;padding:8px 10px;font-size:12px;min-height:36px}
+.app button:disabled{cursor:not-allowed}
+.app:not(.unified-mode) .graph-toolbar{padding:12px 16px}
+.graph-title>span{font-size:10px;color:#9290a6;margin-left:9px}
+.app:not(.unified-mode) .graph-scroll{min-height:240px;max-height:58vh;overscroll-behavior:contain}
+.app:not(.unified-mode) .graph-scroll svg{display:block;min-height:0}
+.app:not(.unified-mode) .graph-footer{font-size:10px;line-height:1.5;flex-wrap:wrap;padding:10px 14px;gap:8px 18px;color:#a09aad}
+.graph-footer .history-groups{color:#d2c4ea}
+.head-ring{animation:none!important}
+.selected-commit{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0}
+.selected-commit>div{display:flex;gap:9px;align-items:center;min-width:0}
+.selected-commit>div:first-child{flex:1}
+.selected-commit strong{font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.selected-commit code{font-size:10px;color:#ab97d0}
+.selected-commit button{font-size:11px;padding:7px 10px;white-space:nowrap}
+.history-disclosure{border-top:1px solid #2c2d39;margin-top:0}
+.history-disclosure>summary{font-size:12px;color:#aaa4ba;padding:14px 0;cursor:pointer}
+.history-disclosure .history-grid{grid-template-columns:1fr}
+.history-disclosure .inspector{display:none}
+.app:not(.unified-mode) .advanced-bar{margin:16px 0;font-size:11px;gap:16px}
+.app:not(.unified-mode) .advanced-bar button{font-size:11px}
+.app:not(.unified-mode) footer{padding:12px 0;font-size:10px}
+.app:not(.unified-mode) .sidebar{padding-top:22px}
+.action-preview{margin:18px 0;background:#12151e;border:1px solid #373143;border-radius:9px;padding:14px}
+.action-route{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.action-route>span{flex:1;min-width:0}
+.action-route>span:last-child{text-align:right}
+.action-route small{display:block;font-size:10px;color:#9c93ad;margin-bottom:5px}
+.action-route strong{font-size:13px;color:#ddd2f2;display:block;overflow-wrap:anywhere}
+.action-route>svg{flex-shrink:0;color:#a593c7}
+.action-preview>svg{display:block;width:100%;height:68px;margin:8px 0}
+.action-preview>small{display:block;color:#a29aac;font-size:11px;line-height:1.5}
+.preview-result{animation:preview-appear .35s ease-out;transform-box:fill-box;transform-origin:center}
+@keyframes preview-appear{from{opacity:.3;transform:scale(.3)}to{opacity:1;transform:scale(1)}}
+.undo-summary{padding:15px;background:#14131e;border:1px solid #3c344e;border-radius:8px;margin:18px 0}
+.undo-summary strong{display:block;font-size:14px;margin-bottom:8px}
+.undo-summary code{font-size:11px;color:#bca5e4;overflow-wrap:anywhere}
+dialog .modal-symbol{width:35px;height:35px;border-radius:9px;margin-bottom:12px}
+dialog .modal-symbol svg{width:20px}
+dialog h2{font-size:22px}
+dialog .eyebrow{display:none}
+@media(max-width:850px){.app:not(.unified-mode)>main{padding:0 16px}.workspace-heading h1{font-size:20px}.workspace-heading>div:last-child{gap:5px}.workspace-heading .outline{font-size:11px;padding:8px}.git-controls>button{padding:8px 10px}.git-controls .history-controls{margin-left:0}.selected-commit{flex-wrap:wrap}.selected-commit>div:first-child{flex-basis:100%}}
+@media(max-width:540px){.app:not(.unified-mode)>main{padding:0 12px}.workspace-heading{padding:16px 0;align-items:flex-start;flex-direction:column;gap:12px}.workspace-heading>div>span{max-width:85vw}.workspace-heading>div:last-child{width:100%}.workspace-heading>div:last-child>button{flex:1;justify-content:center}.git-controls{gap:6px}.git-controls .history-controls{margin-left:0}.git-controls>button,.history-controls button{padding:8px;font-size:11px}.app:not(.unified-mode) .sidebar{padding:12px}.app:not(.unified-mode) .sidebar .brand{font-size:0;gap:0}.app:not(.unified-mode) .sidebar .version{display:none}.app:not(.unified-mode) .sync-actions{flex-wrap:wrap}.graph-tools{gap:10px}.current-branch{max-width:85vw}.app:not(.unified-mode) .graph-scroll{max-height:52vh}.selected-commit button{padding:8px}.action-route strong{font-size:12px}}
+@media(prefers-reduced-motion:reduce){.preview-result{animation:none}}

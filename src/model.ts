@@ -1,6 +1,7 @@
 export type Commit = { hash: string; parents: string[]; refs: string; author: string; date: string; subject: string };
-export type Repo = { name: string; path: string; head: string; current: string; commits: Commit[]; files: { path: string; code: string; original?: string; conflict: boolean }[]; branches: { name: string; hash: string; upstream?: string; remote: boolean }[]; remote: string; ahead: number; behind: number; operation: string | null; stashes: { ref: string; message: string }[] };
-export type Action = { action: string; target?: string; name?: string; message?: string; files?: string[]; file?: string; choice?: string; count?: number; good?: string; bad?: string };
+export type UndoEntry = {id:string;label:string;requiresConfirmation:boolean};
+export type Repo = { undoRedo?: {undo:UndoEntry|null;redo:UndoEntry|null;reason?:string}; name: string; path: string; head: string; current: string; commits: Commit[]; files: { path: string; code: string; original?: string; conflict: boolean }[]; branches: { name: string; hash: string; upstream?: string; remote: boolean }[]; remote: string; ahead: number; behind: number; operation: string | null; stashes: { ref: string; message: string }[] };
+export type Action = { action: string; target?: string; name?: string; message?: string; files?: string[]; file?: string; choice?: string; count?: number; good?: string; bad?: string; historyId?: string; confirmHistory?: boolean };
 const hash = (n: number) => n.toString(16).padStart(7, '0') + 'a'.repeat(33);
 export function example(): Repo {
  const rows = [

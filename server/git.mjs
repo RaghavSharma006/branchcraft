@@ -4,6 +4,7 @@ import { access, realpath, mkdtemp, writeFile, rm } from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
 import { AsyncLocalStorage } from 'node:async_hooks';
+import {attachHistory,recordAction,clearHistory,navigateHistory} from './undo.mjs';
 const environment = new AsyncLocalStorage();
 export const withGitEnvironment = (values, fn) => environment.run(values, fn);
 const exec = promisify(execFile);
@@ -25,13 +26,14 @@ export async function openRepository(input) {
 async function optional(repo, args) { try { return await git(repo, args); } catch { return ''; } }
 const exists = async p => { try { await access(p); return true; } catch { return false; } };
 export async function state(repo) {
-  const [log, status, branches, head, current, remote, gitdir, ahead] = await Promise.all([
-    optional(repo, ['log', '--all', 'HEAD', '-n', '180', '--topo-order', '--format=%H%x1f%P%x1f%D%x1f%an%x1f%aI%x1f%s%x1e']),
+  const [log, status, branches, head, current, remote, gitdir, ahead, refs] = await Promise.all([
+    optional(repo, ['log', '--branches', '--remotes', '--tags', 'HEAD', '-n', '180', '--topo-order', '--format=%H%x1f%P%x1f%D%x1f%an%x1f%aI%x1f%s%x1e']),
     git(repo, ['status', '--porcelain=v1', '-z', '--untracked-files=all']),
     git(repo, ['for-each-ref', '--format=%(refname)%09%(objectname)%09%(upstream:short)%09%(symref)', 'refs/heads', 'refs/remotes']),
     optional(repo, ['rev-parse', '--verify', 'HEAD']), optional(repo, ['symbolic-ref', '--short', '-q', 'HEAD']),
     optional(repo, ['remote', 'get-url', 'origin']), git(repo, ['rev-parse', '--absolute-git-dir']),
     optional(repo, ['rev-list', '--left-right', '--count', 'HEAD...@{upstream}']),
+    git(repo,['for-each-ref','--format=%(objectname)%09%(refname)']),
   ]);
   const files = []; const parts = status.split('\0');
   for (let i = 0; i < parts.length; i++) {
@@ -47,13 +49,13 @@ export async function state(repo) {
   else if (await exists(path.join(gd, 'REVERT_HEAD'))) operation = 'revert';
   else if (await exists(path.join(gd, 'BISECT_LOG'))) operation = 'bisect';
   const counts = ahead.trim().split(/\s+/).map(Number);
-  return {
+  return attachHistory(repo,{
     name: path.basename(repo), path: repo, head: head.trim(), current: current.trim() || 'Detached HEAD',
     commits: log.split('\x1e').map(s => s.trim()).filter(Boolean).map(s => { const [hash, parents, refs, author, date, subject] = s.split('\x1f'); return { hash, parents: parents.split(' ').filter(Boolean), refs, author, date, subject }; }),
     files, branches: branches.trim().split('\n').filter(Boolean).map(s => { const [ref, hash, upstream, symbolic] = s.trimEnd().split('\t'); return { name: ref.replace(/^refs\/(heads|remotes)\//, ''), hash, upstream, remote: ref.startsWith('refs/remotes/'), symbolic }; }).filter(b => !b.symbolic),
     remote: remote.trim().replace(/(https?:\/\/)[^/@]+@/, '$1'), ahead: counts[0] || 0, behind: counts[1] || 0, operation,
     stashes: (await optional(repo, ['stash', 'list', '--format=%gd%x09%s'])).trim().split('\n').filter(Boolean).map(s => { const [ref, ...message] = s.split('\t'); return { ref, message: message.join('\t') }; }),
-  };
+  },refs);
 }
 export function validPath(file) {
   if (typeof file !== 'string' || !file || path.posix.isAbsolute(file) || path.win32.isAbsolute(file) || /^[A-Za-z]:/.test(file) || file.includes('\0') || file.split(/[\\/]/).some(p => p === '..' || p.toLowerCase() === '.git')) throw new Error('Invalid repository file path.');
@@ -104,6 +106,7 @@ export async function commitDetails(repo, input) {
 export async function runAction(repo, input) {
   const before = await state(repo);
   if (typeof input.expectedHead !== 'string' || input.expectedHead !== before.head) throw new Error('The repository changed. Refresh the graph and try again.');
+  if(['undo','redo'].includes(input.action))return navigateHistory(repo,input,before,{git,state});
   const cleanActions = ['switch', 'merge', 'rebase', 'cherry-pick', 'revert', 'squash', 'pull', 'bisect'];
   if (cleanActions.includes(input.action) && before.files.length) throw new Error('Save a checkpoint or put your changes on the shelf before this action.');
   if (before.operation && !['continue', 'abort', 'resolve', 'bisect-good', 'bisect-bad', 'bisect-reset'].includes(input.action)) throw new Error(`Finish or cancel the ${before.operation} already in progress.`);
@@ -163,15 +166,18 @@ export async function runAction(repo, input) {
         output += `\nOriginal history is saved on ${backup}.`;
       } catch (error) { output = `${error.message}\nOriginal history is saved on ${backup}.`; }
       finally { await rm(temp, { recursive: true, force: true }); }
-      return { output, state: await state(repo) };
+      clearHistory(repo);return { output, state: await state(repo) };
     }
     default: throw new Error('Unsupported action.');
   }
   try { output = await git(repo, args); }
   catch (error) {
     const after = await state(repo);
-    if (after.operation || after.files.some(f => f.conflict)) return { output: error.message, needsAttention: true, state: after };
+    if (after.operation || after.files.some(f => f.conflict)) { clearHistory(repo);return { output: error.message, needsAttention: true, state: await state(repo) }; }
     throw error;
   }
+  const after=await state(repo);
+  if(['fetch','push','pull','commit','stash','stash-apply','tag','continue','abort','resolve','bisect','bisect-good','bisect-bad','bisect-reset'].includes(input.action))clearHistory(repo);
+  else recordAction(repo,input,before,after);
   return { output: output || 'Done.', state: await state(repo) };
 }
