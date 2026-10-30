@@ -57,6 +57,22 @@ export function layout(repo) {
   if (ordered.length !== byHash.size) throw Error('Commit history contains a parent cycle.');
   for (const commit of ordered.slice().reverse()) followFirstParent(commit.hash);
 
+  // A ref ending mid-chain is a label, not a fork. Join lanes along
+  // unambiguous one-parent/one-child continuations before positioning them.
+  const laneRoot=Array.from({length:laneCount},(_,i)=>i);
+  const rootLane=i=>{while(laneRoot[i]!==i)i=laneRoot[i];return i;};
+  for(const commit of ordered){
+    if(commit.parents.length!==1)continue;
+    const parent=commit.parents[0];
+    if(!byHash.has(parent)||children.get(parent).length!==1)continue;
+    const a=rootLane(lanes.get(parent)),b=rootLane(lanes.get(commit.hash));
+    laneRoot[Math.max(a,b)]=Math.min(a,b);
+  }
+  const compact=new Map();const compactColors=[];
+  for(let i=0;i<laneCount;i++){const root=rootLane(i);if(!compact.has(root)){compact.set(root,compact.size);compactColors.push(laneColors[root]);}}
+  for(const [hash,lane] of lanes)lanes.set(hash,compact.get(rootLane(lane)));
+  laneCount=compact.size;laneColors.splice(0,laneColors.length,...compactColors);
+
   const groupOrder = [...new Set([...lanes.keys()].map(group))];
   const groupIds = new Map(groupOrder.map((hash, index) => [hash, index]));
   // Keep every connected history in one contiguous band. Otherwise an edge

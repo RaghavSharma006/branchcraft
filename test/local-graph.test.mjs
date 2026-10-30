@@ -55,3 +55,8 @@ test('related branches stay adjacent instead of crossing a disconnected history'
  for(const n of graph.nodes)for(const parent of n.parents){const p=byHash.get(parent);if(!p)continue;for(const unrelated of graph.nodes.filter(other=>other.component!==n.component))assert.ok(unrelated.y<Math.min(n.y,p.y)||unrelated.y>Math.max(n.y,p.y));}
  assert.deepEqual(graph,layout({...input,head:'y',current:'master'}));assertTopology(graph);
 });
+test('a branch ref in the middle of a linear chain does not bend the history',()=>{
+ const input=repo([commit('a'),commit('b',['a']),commit('c',['b']),commit('d',['c'])],'d',[branch('main','b'),branch('hello','d'),branch('origin/main','b',true)]);
+ const graph=layout(input);assert.equal(new Set(graph.nodes.map(n=>n.y)).size,1);assertTopology(graph);
+ assert.deepEqual(layout({...input,head:'b',current:'main'}),graph);
+});
