@@ -42,3 +42,9 @@ test('stacked branch labels expand the lane and cyclic data is rejected',()=>{
   assertTopology(graph);assert.ok(graph.nodes[1].y-graph.nodes[0].y>=140);
   assert.throws(()=>layout(repo([commit('a',['b']),commit('b',['a'])],'a')),/cycle/);
 });
+test('switching branches preserves every node color and position, including shared tips',()=>{
+ const input=repo([commit('a'),commit('b',['a']),commit('c',['a'])],'b',[branch('main','b'),branch('master','c'),branch('alias','b')]);
+ const before=layout(input);
+ for(const current of input.branches)assert.deepEqual(layout({...input,head:current.hash,current:current.name}),before);
+ assert.deepEqual(layout({...input,head:'a',current:'Detached HEAD'}),before);
+});

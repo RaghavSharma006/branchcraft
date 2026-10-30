@@ -1,22 +1,28 @@
+// Pure name-based colors: no storage, no dependency on HEAD or lane position.
+export function branchColor(name,remote=false){
+ const key=remote?name.slice(name.indexOf('/')+1):name;
+ if(key==='main')return '#b3a0ff';if(key==='master')return '#69d9b3';
+ let hash=2166136261;for(const char of key)hash=Math.imul(hash^char.charCodeAt(0),16777619)>>>0;
+ return 'hsl('+hash%360+' 65% 72%)';
+}
 // Layout follows Git's parent links, never timestamps or branch-name guesses.
 export function layout(repo) {
   const byHash = new Map(repo.commits.map(commit => [commit.hash, commit]));
   const branches = [...repo.branches].sort((a, b) =>
-    Number(a.name !== repo.current || a.remote) - Number(b.name !== repo.current || b.remote)
+    Number(!['main','master'].includes(a.name)) - Number(!['main','master'].includes(b.name))
     || Number(a.remote) - Number(b.remote) || a.name.localeCompare(b.name));
-  const lanes = new Map();
+  const lanes = new Map(), laneColors=[];
   let laneCount = 0;
-  function followFirstParent(hash) {
+  function followFirstParent(hash,color=branchColor(hash)) {
     let used = false;
     while (byHash.has(hash) && !lanes.has(hash)) {
       lanes.set(hash, laneCount); used = true;
       hash = byHash.get(hash).parents[0];
     }
-    if (used) laneCount++;
+    if (used) {laneColors[laneCount]=color;laneCount++;}
   }
-  // Detached HEAD also owns the first lane. Other refs at this commit share it.
-  followFirstParent(repo.head);
-  for (const branch of branches) followFirstParent(branch.hash);
+  // Color ownership is independent of the selected branch.
+  for (const branch of branches) followFirstParent(branch.hash,branchColor(branch.name,branch.remote));
 
   const children = new Map([...byHash.keys()].map(hash => [hash, []]));
   const parentCounts = new Map();
@@ -65,7 +71,7 @@ export function layout(repo) {
     nextY += Math.max(118, (labelRows ? 72 + (labelRows - 1) * 16 : 51) + 36);
   }
   const nodes = ordered.map(commit => ({...commit,
-    lane:lanes.get(commit.hash), component:groupIds.get(group(commit.hash)),
+    color:laneColors[lanes.get(commit.hash)], lane:lanes.get(commit.hash), component:groupIds.get(group(commit.hash)),
     x:80 + depth.get(commit.hash) * 140, y:rowY[lanes.get(commit.hash)],
     missingParents:commit.parents.filter(hash => !byHash.has(hash)),
   })).sort((a, b) => a.x - b.x || a.lane - b.lane || a.hash.localeCompare(b.hash));
